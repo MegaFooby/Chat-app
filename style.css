@@ -6,7 +6,7 @@
 }
 
 body {
-    font: 13px Helvetica, Arial;
+    font: 20px Helvetica, Arial;
 }
 
 form {
@@ -35,6 +35,8 @@ form button {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    width: 75vw;
+    max-width: 960px;
 }
 
 #messages li {
@@ -50,18 +52,37 @@ form button {
     margin-bottom: 40px
 }
 
+#users {
+    list-style-type: none;
+    position: absolute;
+    bottom: 50px;
+    width: 15vw;
+    max-width: 192px;
+}
+
+#time {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 10vw;
+    max-width: 128px;
+}
+
+#time li {
+    padding: 5px 10px;
+    background: silver;
+}
+
+#time li:nth-child(odd) {
+    background: #eee;
+}
+
 .row {
     display: flex;
 }
   
 .column {
     float: left;
-}
-  
-.left {
-    width: 960px;
-}
-  
-.right {
-    width: 25%;
+    padding-left: 0vw;
+    padding-right: 0vw;
 }

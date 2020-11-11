@@ -4,10 +4,8 @@ $(function () {
     let this_id = -1;
     if (document.cookie.split(';').some((item) => item.trim().startsWith('id='))) {
         this_id = Number(document.cookie.split('; ').find(row => row.startsWith('id')).split('=')[1]);
-        socket.emit('handshake', this_id);
-    } else {
-        socket.emit('handshake new');
     }
+    socket.emit('handshake', this_id);
 
     $('form').submit(function() {
         socket.emit('chat message', this_id, $('#m').val());
@@ -29,10 +27,9 @@ $(function () {
         usrnm.append(name + ": ");
         newmsg.append(usrnm);
         newmsg.append(msg);
-        let time_element = document.createElement("span");
-        time_element.style.textAlign = "right";
+        let time_element = document.createElement("li");
         time_element.append(time);
-        newmsg.append(time_element);
+        $('#time').append(time_element);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
         //console.log("#" + zeroFill(colour.toString(16),6));
@@ -41,14 +38,29 @@ $(function () {
     socket.on('id', function(identification) {
         this_id = identification;
         document.cookie = "id=" + this_id;
-        console.log(this_id);
+        //console.log(this_id);
     });
 
     socket.on('colour change', function(id, colour) {
         for(i of document.getElementsByClassName("usr" + id)) {
             i.style.color = "#" + zeroFill(colour.toString(16),6);
         }
-        console.log(document.getElementsByClassName("usr" + id).length);
+        //console.log(document.getElementsByClassName("usr" + id).length);
+        let usrnm = document.getElementById("online user " + id);
+        usrnm.style.color = "#" + zeroFill(colour.toString(16), 6);
+    });
+
+    socket.on('name change', function(id, old_name, new_name) {
+        //console.log(new_name);
+        let newmsg = document.createElement("li");
+        newmsg.append(old_name + " has changed names to " + new_name);
+        $('#messages').append(newmsg);
+        window.scrollTo(0, document.body.scrollHeight);
+        let usrnm = document.getElementById("online user " + id);
+        usrnm.textContent = new_name;
+        let null_element = document.createElement("li");
+        null_element.append(String.fromCodePoint(0x200b));
+        $('#time').append(null_element);
     });
 
     socket.on('server msg', function(msg) {
@@ -56,6 +68,9 @@ $(function () {
         newmsg.append(msg);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
+        let null_element = document.createElement("li");
+        null_element.append(String.fromCodePoint(0x200b));
+        $('#time').append(null_element);
     });
 
     socket.on('my error', function(msg) {
@@ -65,10 +80,37 @@ $(function () {
         newmsg.append(msg);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
+        let null_element = document.createElement("li");
+        null_element.append(String.fromCodePoint(0x200b));
+        $('#time').append(null_element);
     });
 
     socket.on('ping', function() {
         socket.emit('pong', this_id);
+    });
+
+    socket.on('user online', function(id, username, colour) {
+        //console.log(id);
+        let usrnm = document.getElementById("online user " + id);
+        if(usrnm !== null) {
+            return;
+        }
+        let usr = document.createElement("li");
+        if(id == this_id) {
+            usr.style.fontWeight = "bold";
+        }
+        usr.id = "online user " + id;
+        usr.style.color = "#" + zeroFill(colour.toString(16),6);
+        usr.append(username);
+        $('#users').append(usr);
+    });
+
+    socket.on('user disconnect', function(id) {
+        let usrnm = document.getElementById("online user " + id);
+        if(typeof usrnm === null) {
+            return;
+        }
+        usrnm.remove();
     });
 });
 

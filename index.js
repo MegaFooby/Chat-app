@@ -3,11 +3,6 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 3002;
 
-/*
-TODO:
-display current users
-*/
-
 class user {
     constructor(num) {
         this.name = "User" + num;
@@ -38,23 +33,13 @@ app.get('/style.css', function (req, res) {
 });
 
 io.on('connection', function (socket) {
-    socket.on('handshake new', function () {
-        users.push(new user(users.length));
-        socket.emit('id', users.length-1);
-        for(entry of log) {
-            if(entry.args[0] == 'chat message') {
-                socket.emit(entry.args[0], entry.args[1], entry.args[2], entry.args[3], entry.args[4], users[entry.args[1]].colour);
-            }
-            else if(entry.args[0] == 'server msg') {
-                socket.emit(entry.args[0], entry.args[1]);
-            }
-        }
-    });
-
     socket.on('handshake', function (id) {
-        if(id >= users.length) {
+        if(id >= users.length || id == -1) {
+            id = users.length;
+            socket.emit('id', id);
             users.push(new user(users.length));
-            socket.emit('id', users.length-1);
+        } else {
+            users[id].online = true;
         }
         for(entry of log) {
             if(entry.args[0] == 'chat message') {
@@ -62,11 +47,17 @@ io.on('connection', function (socket) {
             }
             else if(entry.args[0] == 'server msg') {
                 socket.emit(entry.args[0], entry.args[1]);
+            }
+        }
+        for(let i = 0; i < users.length; i++) {
+            if(users[i].online) {
+                io.emit('user online', i, users[i].name, users[i].colour);
             }
         }
     });
 
     socket.on('chat message', function (id, msg) {
+        if(msg.length == 0) return;
         if(msg.split("")[0] == '/') {
             if(msg.split(" ")[0] == '/name') {
                 let new_name = msg.substring(6);
@@ -76,7 +67,7 @@ io.on('connection', function (socket) {
                         return;
                     }
                 }
-                io.emit('server msg', users[id].name + " has changed names to " + new_name);
+                io.emit('name change', id, users[id].name, new_name);
                 log.push(new log_entry(['server msg', users[id].name + " has changed names to " + new_name]));
                 users[id].name = new_name;
                 return;
@@ -87,7 +78,7 @@ io.on('connection', function (socket) {
                     socket.emit('my error', "Invalid colour");
                     return;
                 }
-                console.log(new_colour);
+                //console.log(new_colour);
                 users[id].colour = new_colour;
                 io.emit('colour change', id, new_colour);
                 return;
@@ -111,10 +102,12 @@ io.on('connection', function (socket) {
         for(i of users) {
             i.online = false;
         }
+        setInterval(online_check, 10000, socket);
     });
 
     socket.on('pong', function (id) {
-        users[id].online = true;
+        if(id < users.length)
+            users[id].online = true;
     });
 });
 
@@ -122,13 +115,22 @@ http.listen(port, function () {
     console.log('listening on *:' + port);
 });
 
+function online_check() {
+    for(let i = 0; i < users.length; i++) {
+        if(!users[i].online) {
+            //console.log(i);
+            io.emit('user disconnect', i);
+        }
+    }
+}
+
 function is_colour(colour) {
     if(colour.length != 6) {
         return false;
     }
     for(let i = 0; i < colour.length; i++) {
         let code = colour.charCodeAt(i);
-        if(code < 48 || (code > 57 && code < 65) || (code > 70 && code < 97) || code > 103) {
+        if(code < 48 || (code > 57 && code < 65) || (code > 70 && code < 97) || code > 102) {
             return false;
         }
     }
