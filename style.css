@@ -54,31 +54,22 @@ form button {
 
 #users {
     list-style-type: none;
-    position: absolute;
-    bottom: 50px;
-    width: 15vw;
-    max-width: 192px;
+    width: 25vw;
+    min-height: 100vh;
+    top: 0px;
+    max-width: 320px;
+    position: relative;
+    background: #CCC;
+    height: 100px;
 }
 
-#time {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    width: 10vw;
-    max-width: 128px;
-}
-
-#time li {
-    padding: 5px 10px;
-    background: silver;
-}
-
-#time li:nth-child(odd) {
-    background: #eee;
+.time {
+    float: right;
 }
 
 .row {
     display: flex;
+    justify-content: center;
 }
   
 .column {

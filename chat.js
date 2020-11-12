@@ -27,9 +27,10 @@ $(function () {
         usrnm.append(name + ": ");
         newmsg.append(usrnm);
         newmsg.append(msg);
-        let time_element = document.createElement("li");
+        let time_element = document.createElement("span");
+        time_element.className = "time";
         time_element.append(time);
-        $('#time').append(time_element);
+        newmsg.append(time_element);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
         //console.log("#" + zeroFill(colour.toString(16),6));
@@ -58,9 +59,6 @@ $(function () {
         window.scrollTo(0, document.body.scrollHeight);
         let usrnm = document.getElementById("online user " + id);
         usrnm.textContent = new_name;
-        let null_element = document.createElement("li");
-        null_element.append(String.fromCodePoint(0x200b));
-        $('#time').append(null_element);
     });
 
     socket.on('server msg', function(msg) {
@@ -68,9 +66,6 @@ $(function () {
         newmsg.append(msg);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
-        let null_element = document.createElement("li");
-        null_element.append(String.fromCodePoint(0x200b));
-        $('#time').append(null_element);
     });
 
     socket.on('my error', function(msg) {
@@ -80,9 +75,6 @@ $(function () {
         newmsg.append(msg);
         $('#messages').append(newmsg);
         window.scrollTo(0, document.body.scrollHeight);
-        let null_element = document.createElement("li");
-        null_element.append(String.fromCodePoint(0x200b));
-        $('#time').append(null_element);
     });
 
     socket.on('ping', function() {
@@ -107,7 +99,7 @@ $(function () {
 
     socket.on('user disconnect', function(id) {
         let usrnm = document.getElementById("online user " + id);
-        if(typeof usrnm === null) {
+        if(usrnm === null) {
             return;
         }
         usrnm.remove();
@@ -124,3 +116,9 @@ function zeroFill(string, width)
   }
   return string + ""; // always return a string
 }
+
+$(window).scroll(function () {
+    if ($(window).scrollTop() > 0) {
+        $('#users').css('top', $(window).scrollTop());
+    }
+});
